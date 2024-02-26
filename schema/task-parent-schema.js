@@ -51,4 +51,4 @@ const taskSchema = new Schema({
 
 connect(`mongodb+srv://joseph:O2EJZgjhkNmlQAqq@cluster0.lutbihw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
 module.exports.taskParent = model("TaskParent", taskParentSchema);
-module.exports.task = model("Task", taskSchema);
+module.exports.taskModel = model("Task", taskSchema);

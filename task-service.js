@@ -1,8 +1,8 @@
 var grpc = require('@grpc/grpc-js');
 console.log(__dirname)
-var PROTO_PATH = '../protos/protos/task.proto'; // gRPC
+var PROTO_PATH = './protos/protos/task.proto'; // gRPC
 var protoLoader = require('@grpc/proto-loader'); // gRPC
-const { taskParent, task } = require('./schema/task-parent-schema');
+const { taskParent, task, taskModel } = require('./schema/task-parent-schema');
 var server = new grpc.Server(); // gRPC
 
 
@@ -20,16 +20,19 @@ var taskDescriptor = grpc.loadPackageDefinition(packageDefinition);
 // The taskDescriptor object has the full package hierarchy
 var routeguide = taskDescriptor.routeguide;
 
-function getTaskParentList(call, callback) {
+async function getTaskParentList(call, callback) {
     try {
-        taskParent.find({}, (err, data) => {
-            if (err) {
-                callback(err)
-            }
-            else {
-                callback(null, { task_parents: data })
-            }
-        })
+        const parents = await taskParent.find({}).populate('tasks')
+        if (parents) {
+            callback(null, {
+                task_parents: [
+                    ...parents
+                ]
+            });
+        }
+        else {
+            callback(null, { task_parents: [] })
+        }
     } catch (e) {
         callback(e)
     }
@@ -38,10 +41,11 @@ function getTaskParentList(call, callback) {
 function getTaskParentTasks() {
 
 }
-function streamTaskParents(call,callback){}
+
 function addTask() { }
 function deleteTask() { }
 function updateTask() { }
+
 async function addTaskParent(call, callback) {
     try {
         const { tasks } = call.request
@@ -74,6 +78,33 @@ async function addTaskParent(call, callback) {
     }
 }
 
+async function taskModelUpdate(call, callback) {
+    try {
+        // console.log(call.request)
+        const { task, parent, user } = call.request
+        const res = await taskModel.findByIdAndUpdate(task._id, {
+            title: task.title,
+            isDone: task.is_done
+        }, {
+            new: true
+        })
+
+        if (!res) {
+            callback('Task not found')
+            return
+        }
+        console.log(res)
+        callback(null, res)
+    }
+    catch (e) {
+        console.log(e)
+        callback(e)
+    }
+}
+
+function validateAccessToken(call) {
+    
+}
 
 function main() {
     server.addService(taskDescriptor.TaskService.service, {
@@ -81,12 +112,13 @@ function main() {
         getTaskParentTasks: getTaskParentTasks,
         addTask: addTask,
         deleteTask: deleteTask,
-        updateTask: updateTask,
+        // updateTask: updateTask,
         addTaskParent: addTaskParent,
-        streamTaskParents: streamTaskParents
+        updateTaskModel: taskModelUpdate
     });
+
     server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
-        server.start();
+        console.log('GRPC server is running');
     });
 }
 
