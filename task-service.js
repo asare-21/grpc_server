@@ -1,3 +1,4 @@
+require('dotenv').config();
 var grpc = require('@grpc/grpc-js');
 console.log(__dirname)
 var PROTO_PATH = './protos/protos/task.proto'; // gRPC
@@ -103,7 +104,7 @@ async function taskModelUpdate(call, callback) {
 }
 
 function validateAccessToken(call) {
-    
+
 }
 
 function main() {
@@ -117,7 +118,7 @@ function main() {
         updateTaskModel: taskModelUpdate
     });
 
-    server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
+    server.bindAsync(`${process.env.PORT ?? "0.0.0.0:50051"}`, grpc.ServerCredentials.createInsecure(), () => {
         console.log('GRPC server is running');
     });
 }
