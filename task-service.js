@@ -18,9 +18,6 @@ var packageDefinition = protoLoader.loadSync(
         oneofs: true
     });
 var taskDescriptor = grpc.loadPackageDefinition(packageDefinition);
-// The taskDescriptor object has the full package hierarchy
-var routeguide = taskDescriptor.routeguide;
-
 async function getTaskParentList(call, callback) {
     try {
         const parents = await taskParent.find({}).populate('tasks')
@@ -38,9 +35,6 @@ async function getTaskParentList(call, callback) {
     } catch (e) {
         callback(e)
     }
-
-}
-function getTaskParentTasks() {
 
 }
 
@@ -133,14 +127,11 @@ async function taskModelUpdate(call, callback) {
     }
 }
 
-function validateAccessToken(call) {
 
-}
 
 function main() {
     server.addService(taskDescriptor.TaskService.service, {
         getTaskParentList: getTaskParentList,
-        getTaskParentTasks: getTaskParentTasks,
         addTask: addTask,
         deleteTask: deleteTask,
         addTaskParent: addTaskParent,
