@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node task-service.js"
+    "start": "node task-service.js",
+    "dev": "nodemon task-service.js"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.8.0",

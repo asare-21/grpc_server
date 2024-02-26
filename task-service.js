@@ -25,10 +25,11 @@ async function getTaskParentList(call, callback) {
     try {
         const parents = await taskParent.find({}).populate('tasks')
         if (parents) {
+            console.log(parents[0].tasks)
             callback(null, {
-                task_parents: [
-                    ...parents
-                ]
+                task_parents:
+                    parents
+
             });
         }
         else {
@@ -43,9 +44,39 @@ function getTaskParentTasks() {
 
 }
 
-function addTask() { }
-function deleteTask() { }
-function updateTask() { }
+async function addTask(call, callback) {
+    try {
+        console.log(call.request)
+        const { title, parent } = call.request
+        const taskM = new taskModel({
+            parent: parent,
+            title: title,
+            isDone: false
+        })
+        // add task to parent task list
+        await taskParent.findByIdAndUpdate(parent, { $push: { tasks: taskM._id } })
+        await taskM.save()
+        callback(null, { id: taskM._id, title: taskM.title, is_done: taskM.isDone, parent: taskM.parent })
+    }
+    catch (e) {
+        console.log(e)
+        callback(e)
+
+    }
+}
+async function deleteTask(call, callback) {
+    try {
+        console.log("Delete task requested: ", call.request)
+        const { id, parent } = call.request
+        const res = await taskModel.findByIdAndDelete(id)
+        await taskParent.findByIdAndUpdate(parent, { $pull: { tasks: id } })
+        callback(null, { ...res })
+    } catch (e) {
+        console.error(e)
+        callback(e)
+    }
+}
+
 
 async function addTaskParent(call, callback) {
     try {
@@ -59,7 +90,7 @@ async function addTaskParent(call, callback) {
             time: call.request.time
         })
         tasks.forEach(t => {
-            const taskM = new task({
+            const taskM = new taskModel({
                 parent: tp._id,
                 title: t.title,
                 isDone: t.is_done
@@ -83,9 +114,9 @@ async function taskModelUpdate(call, callback) {
     try {
         // console.log(call.request)
         const { task, parent, user } = call.request
-        const res = await taskModel.findByIdAndUpdate(task._id, {
-            title: task.title,
-            isDone: task.is_done
+
+        const res = await taskModel.findByIdAndUpdate(task.id, {
+            isDone: task.isDone
         }, {
             new: true
         })
@@ -94,7 +125,6 @@ async function taskModelUpdate(call, callback) {
             callback('Task not found')
             return
         }
-        console.log(res)
         callback(null, res)
     }
     catch (e) {
@@ -113,7 +143,6 @@ function main() {
         getTaskParentTasks: getTaskParentTasks,
         addTask: addTask,
         deleteTask: deleteTask,
-        // updateTask: updateTask,
         addTaskParent: addTaskParent,
         updateTaskModel: taskModelUpdate
     });

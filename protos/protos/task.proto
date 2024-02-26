@@ -1,9 +1,9 @@
 syntax = "proto3";
 
 message TaskModel {
-  string _id = 1;
+  string id = 1;
   string title = 2;
-  bool is_done = 3;
+  bool isDone = 3;
   string parent = 4;
 }
 
@@ -20,7 +20,7 @@ message TaskParentModel {
   repeated TaskModel tasks = 4;
   string date = 5;
   string time = 6;
-  string _id = 7;
+  string id = 7;
   User user = 8;
 }
 
@@ -36,7 +36,7 @@ message TaskModelUpdate{
 }
 
 service TaskService {
-  rpc GetTaskParentList(User) returns (TaskParentListResponse) {}  
+  rpc GetTaskParentList(User) returns (stream TaskParentListResponse) {}  
   rpc AddTask(TaskModel) returns (TaskModel) {}
   rpc UpdateTask(TaskModel) returns (TaskModel) {}
   rpc DeleteTask(TaskModel) returns (TaskModel) {}
